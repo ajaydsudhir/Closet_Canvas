@@ -1,0 +1,117 @@
+name: closet-canvas
+services:
+  frontend:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: cc-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - capture
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: cc-minio
+    env_file: .env
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - cc-minio-data:/data
+
+  redis:
+    image: redis:8-alpine
+    container_name: cc-redis
+    ports:
+      - "6379:6379"
+
+  cpu-worker:
+    build:
+      context: .
+      dockerfile: services/ingest/Dockerfile.cpu
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_QUEUE_NAME=video
+      - REDIS_CHANNEL=clip_ready
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_REGION=us-east-1
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - redis
+      - minio
+    container_name: cc-cpu-worker
+
+  gpu-worker:
+    build:
+      context: .
+      dockerfile: services/ingest/Dockerfile.gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - USE_BODY_CAPTURE=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_QUEUE_NAME=gating
+      - REDIS_CHANNEL=clip_ready
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_REGION=us-east-1
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MODEL_DIR=/models
+      - HF_MODEL_REPO=abishek0002/sam
+      - HF_MODEL_FILE=sam_vit_h_4b8939.pth
+      - HF_ACCESS_TOKEN=${HF_ACCESS_TOKEN}
+    volumes:
+      - models-data:/models
+      - ./data/catalog:/app/data/catalog:ro
+    depends_on:
+      - redis
+      - minio
+    container_name: cc-gpu-worker
+
+  capture:
+    build:
+      context: .
+      dockerfile: services/capture/Dockerfile
+    container_name: cc-capture
+    env_file: .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+    ports:
+      - "8000:8000"
+    depends_on:
+      - minio
+      - db
+      - redis
+
+  db:
+    image: postgres:18-alpine
+    container_name: cc-db
+    env_file: .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - cc-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  cc-minio-data:
+  cc-db-data:
+  models-data:

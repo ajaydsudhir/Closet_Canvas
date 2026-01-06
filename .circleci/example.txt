@@ -1,0 +1,42 @@
+# Trigger CI workflow
+curl -X POST `
+    -H "Circle-Token: YOUR_CIRCLECI_TOKEN" `
+    -H "Content-Type: application/json" `
+    -d '{\"branch\":\"main\"}' `
+    https://circleci.com/api/v2/project/github/YOUR_USERNAME/YOUR_REPO/pipeline
+
+
+
+#CI workflow
+$token = "YOUR_CIRCLECI_TOKEN"
+$headers = @{
+    "Circle-Token" = $token
+    "Content-Type" = "application/json"
+}
+
+$body = @{
+    branch = "main"  # or your branch name
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post `
+    -Uri "https://circleci.com/api/v2/project/github/YOUR_USERNAME/YOUR_REPO/pipeline" `
+    -Headers $headers `
+    -Body $body
+
+
+#build docker
+$token = "YOUR_CIRCLECI_TOKEN"
+$headers = @{
+    "Circle-Token" = $token
+    "Content-Type" = "application/json"
+}
+
+$body = @{
+    branch = "main"
+    parameters = @{}
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post `
+    -Uri "https://circleci.com/api/v2/project/github/YOUR_USERNAME/YOUR_REPO/pipeline" `
+    -Headers $headers `
+    -Body $body

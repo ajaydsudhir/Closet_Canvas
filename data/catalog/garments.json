@@ -1,0 +1,307 @@
+{
+  "version": "1.0",
+  "description": "Sample garment catalog for Closet Canvas recommendations",
+  "updated_at": "2025-12-01",
+  "garments": [
+    {
+      "garment_id": "G001",
+      "title": "Classic Cotton T-Shirt",
+      "brand": "Nike",
+      "category": "tops",
+      "size": "M",
+      "price": 35.00,
+      "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+      "measurements": {
+        "chest_cm": 96.0,
+        "shoulder_cm": 45.5,
+        "waist_cm": 83.0,
+        "hip_cm": 99.0
+      }
+    },
+    {
+      "garment_id": "G002",
+      "title": "Slim Fit Polo",
+      "brand": "Adidas",
+      "category": "tops",
+      "size": "L",
+      "price": 45.00,
+      "image_url": "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=400",
+      "measurements": {
+        "chest_cm": 100.0,
+        "shoulder_cm": 47.0,
+        "waist_cm": 87.0,
+        "hip_cm": 103.0
+      }
+    },
+    {
+      "garment_id": "G003",
+      "title": "Performance Tank",
+      "brand": "Puma",
+      "category": "tops",
+      "size": "S",
+      "price": 28.00,
+      "image_url": "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400",
+      "measurements": {
+        "chest_cm": 92.0,
+        "shoulder_cm": 43.0,
+        "waist_cm": 79.0,
+        "hip_cm": 95.0
+      }
+    },
+    {
+      "garment_id": "G004",
+      "title": "Casual Blazer",
+      "brand": "Zara",
+      "category": "outerwear",
+      "size": "M",
+      "price": 129.00,
+      "image_url": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400",
+      "measurements": {
+        "chest_cm": 98.0,
+        "shoulder_cm": 46.0,
+        "waist_cm": 85.0,
+        "hip_cm": 100.0
+      }
+    },
+    {
+      "garment_id": "G005",
+      "title": "Denim Jacket",
+      "brand": "Levi's",
+      "category": "outerwear",
+      "size": "M",
+      "price": 89.00,
+      "image_url": "https://images.unsplash.com/photo-1551537482-f2075a1d41f2?w=400",
+      "measurements": {
+        "chest_cm": 97.0,
+        "shoulder_cm": 45.0,
+        "waist_cm": 84.0,
+        "hip_cm": 98.0
+      }
+    },
+    {
+      "garment_id": "G006",
+      "title": "Slim Chinos",
+      "brand": "H&M",
+      "category": "bottoms",
+      "size": "32",
+      "price": 39.00,
+      "image_url": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400",
+      "measurements": {
+        "chest_cm": 0.0,
+        "shoulder_cm": 0.0,
+        "waist_cm": 82.0,
+        "hip_cm": 96.0
+      }
+    },
+    {
+      "garment_id": "G007",
+      "title": "Athletic Joggers",
+      "brand": "Under Armour",
+      "category": "bottoms",
+      "size": "M",
+      "price": 55.00,
+      "image_url": "https://images.unsplash.com/photo-1552902875-9ac1f9fe0c07?w=400",
+      "measurements": {
+        "chest_cm": 0.0,
+        "shoulder_cm": 0.0,
+        "waist_cm": 80.0,
+        "hip_cm": 98.0
+      }
+    },
+    {
+      "garment_id": "G008",
+      "title": "Formal Shirt",
+      "brand": "Ralph Lauren",
+      "category": "tops",
+      "size": "M",
+      "price": 95.00,
+      "image_url": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400",
+      "measurements": {
+        "chest_cm": 95.0,
+        "shoulder_cm": 44.5,
+        "waist_cm": 82.0,
+        "hip_cm": 97.0
+      }
+    },
+    {
+      "garment_id": "G009",
+      "title": "Classic Hoodie",
+      "brand": "Champion",
+      "category": "tops",
+      "size": "L",
+      "price": 65.00,
+      "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400",
+      "measurements": {
+        "chest_cm": 102.0,
+        "shoulder_cm": 48.0,
+        "waist_cm": 90.0,
+        "hip_cm": 105.0
+      }
+    },
+    {
+      "garment_id": "G010",
+      "title": "Bomber Jacket",
+      "brand": "Alpha Industries",
+      "category": "outerwear",
+      "size": "M",
+      "price": 175.00,
+      "image_url": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400",
+      "measurements": {
+        "chest_cm": 99.0,
+        "shoulder_cm": 46.5,
+        "waist_cm": 86.0,
+        "hip_cm": 101.0
+      }
+    },
+    {
+      "garment_id": "G011",
+      "title": "V-Neck Sweater",
+      "brand": "Gap",
+      "category": "tops",
+      "size": "M",
+      "price": 49.00,
+      "image_url": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400",
+      "measurements": {
+        "chest_cm": 96.0,
+        "shoulder_cm": 45.0,
+        "waist_cm": 84.0,
+        "hip_cm": 98.0
+      }
+    },
+    {
+      "garment_id": "G012",
+      "title": "Cargo Pants",
+      "brand": "Carhartt",
+      "category": "bottoms",
+      "size": "32",
+      "price": 75.00,
+      "image_url": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400",
+      "measurements": {
+        "chest_cm": 0.0,
+        "shoulder_cm": 0.0,
+        "waist_cm": 83.0,
+        "hip_cm": 99.0
+      }
+    },
+    {
+      "garment_id": "G013",
+      "title": "Leather Jacket",
+      "brand": "AllSaints",
+      "category": "outerwear",
+      "size": "M",
+      "price": 450.00,
+      "image_url": "https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=400",
+      "measurements": {
+        "chest_cm": 96.0,
+        "shoulder_cm": 44.5,
+        "waist_cm": 82.0,
+        "hip_cm": 97.0
+      }
+    },
+    {
+      "garment_id": "G014",
+      "title": "Slim Fit Jeans",
+      "brand": "Levi's",
+      "category": "bottoms",
+      "size": "32",
+      "price": 69.00,
+      "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400",
+      "measurements": {
+        "chest_cm": 0.0,
+        "shoulder_cm": 0.0,
+        "waist_cm": 81.0,
+        "hip_cm": 97.0
+      }
+    },
+    {
+      "garment_id": "G015",
+      "title": "Henley Shirt",
+      "brand": "J.Crew",
+      "category": "tops",
+      "size": "M",
+      "price": 42.00,
+      "image_url": "https://images.unsplash.com/photo-1602810319428-019690571b5b?w=400",
+      "measurements": {
+        "chest_cm": 94.0,
+        "shoulder_cm": 44.0,
+        "waist_cm": 81.0,
+        "hip_cm": 96.0
+      }
+    },
+    {
+      "garment_id": "G016",
+      "title": "Windbreaker",
+      "brand": "The North Face",
+      "category": "outerwear",
+      "size": "M",
+      "price": 110.00,
+      "image_url": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400",
+      "measurements": {
+        "chest_cm": 98.0,
+        "shoulder_cm": 46.0,
+        "waist_cm": 86.0,
+        "hip_cm": 100.0
+      }
+    },
+    {
+      "garment_id": "G017",
+      "title": "Crew Neck Sweatshirt",
+      "brand": "Uniqlo",
+      "category": "tops",
+      "size": "M",
+      "price": 39.00,
+      "image_url": "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=400",
+      "measurements": {
+        "chest_cm": 97.0,
+        "shoulder_cm": 45.5,
+        "waist_cm": 85.0,
+        "hip_cm": 99.0
+      }
+    },
+    {
+      "garment_id": "G018",
+      "title": "Tailored Shorts",
+      "brand": "Bonobos",
+      "category": "bottoms",
+      "size": "32",
+      "price": 68.00,
+      "image_url": "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400",
+      "measurements": {
+        "chest_cm": 0.0,
+        "shoulder_cm": 0.0,
+        "waist_cm": 82.0,
+        "hip_cm": 98.0
+      }
+    },
+    {
+      "garment_id": "G019",
+      "title": "Quilted Vest",
+      "brand": "Patagonia",
+      "category": "outerwear",
+      "size": "M",
+      "price": 149.00,
+      "image_url": "https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=400",
+      "measurements": {
+        "chest_cm": 95.0,
+        "shoulder_cm": 44.0,
+        "waist_cm": 83.0,
+        "hip_cm": 97.0
+      }
+    },
+    {
+      "garment_id": "G020",
+      "title": "Oxford Button-Down",
+      "brand": "Brooks Brothers",
+      "category": "tops",
+      "size": "M",
+      "price": 88.00,
+      "image_url": "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400",
+      "measurements": {
+        "chest_cm": 96.0,
+        "shoulder_cm": 45.0,
+        "waist_cm": 84.0,
+        "hip_cm": 98.0
+      }
+    }
+  ]
+}

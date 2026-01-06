@@ -1,0 +1,303 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+% Use the CVPR style package for proper formatting
+\usepackage{cvpr}
+
+% Adjust margins to match CVPR standards
+\usepackage[margin=0.75in]{geometry}
+
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+% Define the cvprblue color
+\usepackage{xcolor}
+\definecolor{cvprblue}{rgb}{0.1, 0.6, 0.8}
+
+% Add natbib package for citations
+\usepackage[numbers,sort&compress]{natbib}
+
+% Add additional packages for tables, math, algorithms, etc.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsfonts}
+\usepackage{listings}
+
+\title{Closet Canvas: Fit and Style-Aware Personalized Recommendations for Apparel}
+
+\author{
+Ajay D. Sudhir \\
+University of North Carolina at Charlotte\\
+{\tt\small asudhir@charlotte.edu} \\
+\and
+Bruh Lemma Yadecha \\
+University of North Carolina at Charlotte\\
+{\tt\small byadecha@charlotte.edu} \\
+\and
+Abishek Arulkumar Padmapriya \\
+University of North Carolina at Charlotte\\
+{\tt\small aarulkum@charlotte.edu} \\
+\and
+Nitin Chandrasekhar \\
+University of North Carolina at Charlotte\\
+{\tt\small nchandr8@charlotte.edu} \\
+\and
+Mitchell Nguyen \\
+University of North Carolina at Charlotte\\
+{\tt\small mnguye65@charlotte.edu}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Closet Canvas is a body-aware fashion recommendation system that matches users to clothes based on \textbf{fit} and \textbf{style}. Unlike traditional fashion recommendation systems that rely solely on user behavior data, Closet Canvas combines body profile extraction from video, per-size garment specifications, multimodal CLIP-based style embeddings, fit-based filtering, and online preference learning. This technical report documents the complete system architecture, machine learning models, data pipelines, and infrastructure components that power the recommendation engine.
+\end{abstract}
+
+%=============================================================================
+\section{Introduction}
+%=============================================================================
+
+Online fashion retail faces a fundamental challenge: the disconnect between digital garment representations and physical user compatibility. Closet Canvas addresses this by combining computer vision-based body measurement extraction with intelligent recommendation algorithms.
+
+The system integrates five core capabilities: (1) \textbf{Body Profile Extraction} from video using pose estimation, (2) \textbf{Garment Specifications} with per-size measurement catalogs, (3) \textbf{Style Embeddings} using multimodal CLIP-based features, (4) \textbf{Fit-Based Filtering} comparing body measurements ($b_{spec}$) with garment measurements ($g_{spec}$), and (5) \textbf{Preference Learning} through online adaptation to user ratings.
+
+\subsection{Recommendation Scoring}
+
+The recommendation engine produces three primary scores:
+
+\begin{itemize}
+    \item \textbf{Fit Score}: 0--100 based on measurement matching (chest, shoulder, waist, hip)
+    \item \textbf{Preference Score}: 0--100 based on CLIP embedding similarity
+    \item \textbf{Combined Score}: Weighted average (60\% fit, 40\% preference by default)
+\end{itemize}
+
+The combined score is calculated as:
+\begin{equation}
+    S_{combined} = w_{fit} \cdot \frac{S_{fit}}{100} + w_{pref} \cdot \frac{S_{pref}}{100}
+\end{equation}
+where $w_{fit} = 0.6$ and $w_{pref} = 0.4$ by default.
+
+%=============================================================================
+\section{System Architecture}
+%=============================================================================
+
+\subsection{High-Level Architecture}
+
+The Closet Canvas system follows a microservices architecture with the following primary components:
+
+\begin{itemize}
+    \item \textbf{Frontend (React)} -- User interface for video capture and recommendation display
+    \item \textbf{Capture Service (FastAPI)} -- REST API for session management and file uploads
+    \item \textbf{Ingest Workers} -- Background job processors for ML inference
+    \item \textbf{Recommendation Engine} -- Core logic for fit analysis and preference scoring
+\end{itemize}
+
+The infrastructure layer provides:
+\begin{itemize}
+    \item \textbf{MinIO} -- S3-compatible object storage for videos, masks, and measurements
+    \item \textbf{Redis} -- Job queue (RQ) and pub/sub for real-time status updates
+    \item \textbf{PostgreSQL} -- Persistent storage for users, sessions, and metadata
+    \item \textbf{GPU/CPU Workers} -- Containerized workers for ML inference
+\end{itemize}
+
+\subsection{Processing Pipeline Flow}
+
+The video processing pipeline consists of four sequential stages:
+
+\begin{enumerate}
+    \item \textbf{CPU Worker (video queue)} -- Video remuxing and preprocessing
+    \item \textbf{GPU Worker (gating queue)} -- Video quality gating and person segmentation using SegFormer and SAM
+    \item \textbf{GPU Worker (smpl queue)} -- Body measurement estimation using MediaPipe pose detection
+    \item \textbf{GPU Worker (recommendation queue)} -- Fit analysis ($b_{spec}$ vs $g_{spec}$) and preference scoring
+\end{enumerate}
+
+Each stage publishes status updates via Redis pub/sub, which are forwarded to the frontend via WebSocket for real-time progress tracking.
+
+%=============================================================================
+\section{Core Components}
+%=============================================================================
+
+\subsection{Body Capture Module}
+
+The body capture module uses YOLOv8s for person detection with bounding box extraction, frame cropping, and confidence-based filtering (threshold: 0.3).
+
+\subsection{Video Quality Gating}
+
+The quality gating module ensures video frames meet requirements for accurate body measurement estimation. We evaluate five weighted metrics: person visibility (40 pts, $>$10\% coverage), body cutoff (15 pts, full body in frame), lighting (15 pts, mean gray $>$60), sharpness (20 pts, Laplacian variance $>$10), and contrast (10 pts, std dev $>$20). Individual frames must score $\geq$60, and $>$70\% of frames must pass for video acceptance.
+
+\subsection{Catalog Segmentation}
+
+The catalog segmentation pipeline processes garment images using two models in sequence:
+
+\begin{enumerate}
+    \item \textbf{SegFormer B3} (\texttt{sayeed99/segformer\_b3\_clothes})
+    \begin{itemize}
+        \item Semantic segmentation for clothing categories
+        \item Labels 1--17 for different garment types
+    \end{itemize}
+    
+    \item \textbf{Segment Anything Model (SAM)} (\texttt{vit\_h})
+    \begin{itemize}
+        \item Mask refinement using bounding box prompts
+        \item Produces high-quality segmentation masks
+    \end{itemize}
+\end{enumerate}
+
+The pipeline flow is:
+\begin{equation*}
+    \text{Input Image} \xrightarrow{\text{SegFormer}} \text{Coarse Mask} \xrightarrow{\text{SAM}} \text{Refined Mask}
+\end{equation*}
+
+\subsection{CLIP Embeddings}
+
+The style embedding module uses FashionCLIP (ViT-B/32) from \texttt{patrickjohncyh/fashion-clip}, generating 512-dimensional L2-normalized embeddings with GPU acceleration.
+
+\subsection{Body Measurement Estimation}
+
+The measurement estimation module uses MediaPipe Pose (model\_complexity=2) to extract five key measurements: height (nose-to-ankle distance scaled to user input), shoulder width (left-right shoulder landmark distance), and chest, waist, and hip circumferences (computed from ellipse perimeter approximations). Circumference is calculated via:
+\begin{equation}
+    P \approx \pi (a + b) \left(1 + \frac{3h}{10 + \sqrt{4 - 3h}}\right)
+\end{equation}
+where $h = \frac{(a-b)^2}{(a+b)^2}$, and $a$, $b$ are the semi-major and semi-minor axes. The system performs async multi-image inference (max\_concurrency=4), fusing measurements from multiple frames with per-image quality feedback.
+
+\subsection{Fit Recommender}
+
+The fit recommender compares body measurements ($b_{spec}$) with garment specifications ($g_{spec}$). A measurement is acceptable if the difference is 1--3 cm, and overall fit requires all measurements to be acceptable.
+
+\textbf{Fit Score Calculation:}
+\begin{equation}
+    S_{fit} = 25 \times \sum_{m \in \{chest, shoulder, waist, hip\}} \mathbf{1}[1 \leq |g_m - b_m| \leq 3]
+\end{equation}
+where $g_m$ and $b_m$ are the garment and body measurements respectively, and $\mathbf{1}[\cdot]$ is the indicator function.
+
+\subsection{Preference Model}
+
+The preference learning module adapts to user ratings using signed weights: rating 1 maps to $-1.0$ (strong dislike), 2 to $-0.25$ (mild dislike), 3 to $0.0$ (neutral), 4 to $+0.5$ (like), and 5 to $+1.0$ (strong like). The update rule is:
+\begin{equation}
+    \vec{p} \leftarrow \text{normalize}\left(\vec{p} + \eta \cdot w \cdot \text{normalize}(\vec{e})\right)
+\end{equation}
+where $\vec{p}$ is the preference vector, $\eta$ is the learning rate, $w$ is the rating weight, and $\vec{e}$ is the garment embedding.
+
+\textbf{Scoring:} Cosine similarity between preference vector and garment embedding:
+\begin{equation}
+    S_{pref} = \frac{\vec{p} \cdot \vec{e}}{||\vec{p}|| \cdot ||\vec{e}||} \in [-1, 1] \xrightarrow{\text{normalize}} [0, 100]
+\end{equation}
+
+%=============================================================================
+\section{Data Pipeline}
+%=============================================================================
+
+\subsection{Video Capture Session}
+
+The capture flow follows these steps:
+\begin{enumerate}
+    \item \textbf{Frontend} initiates capture session via \texttt{POST /v1/sessions}
+    \item \textbf{Capture Service} creates session with unique ID and upload URLs
+    \item \textbf{User} records video clips (WebRTC $\rightarrow$ blob $\rightarrow$ PUT to MinIO)
+    \item \textbf{Frontend} signals clip upload complete via \texttt{POST /v1/sessions/\{id\}/clips/\{clip\_id\}/uploaded}
+\end{enumerate}
+
+\subsection{Video Processing Queue}
+
+We use Redis with RQ (Redis Queue) to manage four processing queues: \texttt{video} (CPU worker for remuxing), \texttt{gating} (GPU worker for quality checks and segmentation), \texttt{smpl} (GPU worker for body measurement), and \texttt{recommendation} (GPU worker for fit analysis and ranking).
+
+\subsection{Storage Architecture}
+
+MinIO provides S3-compatible object storage across five buckets: \texttt{uploads} (raw video clips), \texttt{processed} (preprocessed videos), \texttt{masks} (segmentation masks), \texttt{smpl-measurements} (body measurements), and \texttt{user-preferences} (serialized preference models).
+
+%=============================================================================
+\section{Machine Learning Models}
+%=============================================================================
+
+\subsection{Model Summary}
+
+The system integrates five deep learning models for different computer vision tasks. For person detection, we employ YOLOv8s from Ultralytics, which operates on both CPU and GPU. Clothes segmentation uses SegFormer B3 from HuggingFace for semantic garment classification. Mask refinement leverages Meta's Segment Anything Model (SAM ViT-H) to produce high-quality segmentation boundaries. Body pose estimation relies on Google's MediaPipe Pose running on CPU for efficient keypoint detection. Finally, style embeddings are generated using FashionCLIP from HuggingFace, a vision-language model fine-tuned for fashion understanding, executed on GPU for optimal performance.
+
+\subsection{Model Weights}
+
+\begin{itemize}
+    \item \textbf{SAM ViT-H:} \texttt{sam\_vit\_h\_4b8939.pth} ($\sim$2.4GB) -- Downloaded from HuggingFace
+    \item \textbf{SegFormer B3:} Auto-downloaded from HuggingFace Transformers
+    \item \textbf{FashionCLIP:} \texttt{patrickjohncyh/fashion-clip} from HuggingFace Hub
+\end{itemize}
+
+%=============================================================================
+\section{API Reference}
+%=============================================================================
+
+\subsection{REST API}
+(
+The FastAPI service exposes endpoints for session management (\texttt{POST /v1/sessions}, \texttt{POST /v1/sessions/\{id\}/clips}, \texttt{POST /v1/sessions/\{id\}/clips/\{clip\_id\}/uploaded}) and user management \texttt{POST /v1/users/login}, \texttt{POST /v1/users/\{id\}/measurements}).
+
+\subsection{WebSocket Status Updates}
+
+The system uses Redis Pub/Sub with WebSocket bridge for real-time status updates. Status progression follows: \texttt{idle} $\rightarrow$ \texttt{recording} $\rightarrow$ \texttt{gating} $\rightarrow$ \texttt{smpl} $\rightarrow$ \texttt{finishing} $\rightarrow$ \texttt{recommending} $\rightarrow$ \texttt{complete}.
+
+%=============================================================================
+\section{Infrastructure}
+%=============================================================================
+
+\subsection{Containerized Deployment}
+
+The system deploys via Docker Compose with seven services: React frontend (port 3000), FastAPI capture service (port 8000), CPU and GPU workers for processing, MinIO (ports 9000-9001), Redis (port 6379), and PostgreSQL (port 5432).
+
+\subsection{GPU Worker Configuration}
+
+GPU workers require NVIDIA GPU access with environment variables: \texttt{MODEL\_DIR} for ML weights, \texttt{HF\_ACCESS\_TOKEN} for model downloads, and \texttt{USE\_BODY\_CAPTURE} to toggle between YOLOv8 and SegFormer pipelines.
+
+%=============================================================================
+\section{Technology Stack}
+%=============================================================================
+
+\subsection{Implementation}
+
+The backend is implemented in Python 3.11+ with FastAPI, PyTorch 2.8+, OpenCV, HuggingFace Transformers (4.57.1), open-clip-torch (3.2.0), segment-anything (1.0), MediaPipe (0.10.21+), and Ultralytics (8.3.228+).
+
+The frontend uses React 18+ with TypeScript, Vite for building, Tailwind CSS for styling, and React Hooks for state management.
+
+Infrastructure components include Docker Compose for containerization, MinIO for S3-compatible storage, PostgreSQL 18 for persistence, Redis with RQ for job queuing, and Nginx for serving the frontend.
+
+%=============================================================================
+\section{Experimental Validation}
+%=============================================================================
+
+\subsection{Preference Model Evaluation}
+
+We evaluate whether the rating–embedding combination compresses user preference into a single vector by:
+\begin{enumerate}
+  \item Initializing a randomized user vector matching the CLIP embedding dimensionality.
+  \item Warming up on the first $N$ rated samples, adding rating-weighted, L2-normalized embeddings and renormalizing after each update.
+  \item Performing online evaluation: for each subsequent embedding, predict a rating via cosine similarity, record accuracy (exact and within-1), and update the user vector with the new rating-weighted embedding.
+  \item Reporting final metrics (exact accuracy, within-1 accuracy, MAE) and saving the resulting user vector.
+\end{enumerate}
+This procedure demonstrates how sequential rating-weighted embedding updates yield a compressed representation of user preference.
+
+\begin{table}[ht]
+  \centering
+  \caption{Signed-weight evaluation runs}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Number & Warmup & Evaluated & Exact acc & Within-1 acc & MAE \\
+    \midrule
+    1 & 10 & 95  & 0.316 & 0.768 & 0.968 \\
+    2 & 10 & 94  & 0.298 & 0.691 & 1.096 \\
+    3  & 10 & 112 & 0.339 & 0.652 & 1.179 \\
+    4  & 10 & 409 & 0.235 & 0.633 & 1.269 \\
+    5  & 10 & 89  & 0.213 & 0.629 & 1.292 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Even with only ten warmup interactions, these online accuracies outperform random-chance expectations (exact $\approx 0.20$, within-1 $\approx 0.52$ for uniform ratings); several runs are significantly above those baselines, showing that the compressed preference vector captures usable signal from limited feedback.
+
+{\small
+\nocite{*}
+\bibliographystyle{ieeenat_fullname}
+\bibliography{references}
+}
+
+\end{document}

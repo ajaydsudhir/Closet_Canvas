@@ -1,0 +1,117 @@
+version: 2.1
+
+jobs:
+  lint-and-typecheck:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run:
+          name: Install uv
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+      - run:
+          name: Install dependencies
+          command: uv sync --dev --locked
+      - run:
+          name: Check formatting with ruff
+          command: uv run --dev ruff format --check .
+      - run:
+          name: Lint with ruff
+          command: uv run --dev ruff check .
+
+  test:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - uv-bin-v1-{{ arch }}
+      - run:
+          name: Ensure uv
+          command: |
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+            if ! command -v uv >/dev/null 2>&1; then
+              curl -LsSf https://astral.sh/uv/install.sh | sh
+            fi
+      - save_cache:
+          key: uv-bin-v1-{{ arch }}
+          paths:
+            - ~/.local/bin/uv
+      - restore_cache:
+          keys:
+            - uv-cache-v1-{{ arch }}-{{ checksum "uv.lock" }}
+            - uv-cache-v1-{{ arch }}
+      - run:
+          name: Install dependencies with uv
+          command: uv sync --dev --all-extras --locked
+      - save_cache:
+          key: uv-cache-v1-{{ arch }}-{{ checksum "uv.lock" }}
+          paths:
+            - ~/.cache/uv
+            - .venv
+      - run:
+          name: Run tests with pytest
+          command: uv run --dev --all-extras pytest tests/
+
+  gating-worker:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - restore_cache:
+          keys:
+            - uv-cache-v1-{{ arch }}-{{ checksum "uv.lock" }}
+            - uv-cache-v1-{{ arch }}
+      - run:
+          name: Install uv and deps (for build tools)
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+            uv sync --dev --locked
+      - save_cache:
+          key: uv-cache-v1-{{ arch }}-{{ checksum "uv.lock" }}
+          paths:
+            - ~/.cache/uv
+            - .venv
+      - run:
+          name: Build gating-worker Docker image
+          command: |
+            docker build \
+              -f services/ingest/Dockerfile.gating \
+              -t gating-worker:${CIRCLE_SHA1} \
+              -t gating-worker:latest .
+      - run:
+          name: Login to GitLab Container Registry
+          command: |
+            echo "$CI_REGISTRY_PASSWORD" | docker login registry.gitlab.com -u "$CI_REGISTRY_USER" --password-stdin
+      - run:
+          name: Tag and push to GitLab Container Registry
+          command: |
+            REGISTRY_REPO="registry.gitlab.com/itcs_4152_5152/closet_canvas/gating-worker"
+            docker tag gating-worker:${CIRCLE_SHA1} ${REGISTRY_REPO}:${CIRCLE_SHA1}
+            docker tag gating-worker:latest ${REGISTRY_REPO}:latest
+            docker push ${REGISTRY_REPO}:${CIRCLE_SHA1}
+            docker push ${REGISTRY_REPO}:latest
+
+workflows:
+  ci:
+    # when:
+    #   and:
+    #     - equal: [ ui, << pipeline.trigger_source >> ]
+    #     - equal: [ api, << pipeline.trigger_source >> ]
+    jobs:
+      - lint-and-typecheck
+      - test
+
+  # build-docker:
+  #   when:
+  #     and:
+  #       - equal: [ ui, << pipeline.trigger_source >> ]
+  #       - equal: [ api, << pipeline.trigger_source >> ]
+  #   jobs:
+  #     - gating-worker

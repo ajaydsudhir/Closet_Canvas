@@ -1,0 +1,57 @@
+\begin{thebibliography}{8}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Abdollahpouri and et~al.(2024)]{Abdollahpouri2024Review}
+Himan Abdollahpouri and et al.
+\newblock Review of modern fashion recommender systems.
+\newblock \emph{arXiv preprint}, 2024.
+
+\bibitem[Ge and et~al.(2024)]{Ge2024OpenFashionCLIP}
+Sijie Ge and et al.
+\newblock Openfashionclip: Vision-and-language contrastive learning with
+  fashion-specific knowledge.
+\newblock \emph{arXiv preprint}, 2024.
+
+\bibitem[He and McAuley(2016)]{He2016VBPR}
+Ruining He and Julian McAuley.
+\newblock Vbpr: Visual bayesian personalized ranking from implicit feedback.
+\newblock In \emph{Proceedings of the Thirtieth AAAI Conference on Artificial
+  Intelligence (AAAI)}, 2016.
+
+\bibitem[Jia and et~al.(2020)]{jia2020fashionpedia}
+Menglin Jia and et al.
+\newblock Fashionpedia: Ontology, segmentation, and an attribute localization
+  dataset.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2020.
+
+\bibitem[Jocher et~al.(2023)Jocher, Chaurasia, and Qiu]{Jocher2023YOLOv8}
+Glenn Jocher, Ayush Chaurasia, and Jing Qiu.
+\newblock Yolov8 by ultralytics.
+\newblock \emph{GitHub repository}, 2023.
+
+\bibitem[Kocabas et~al.(2020)Kocabas, Athanasiou, and Black]{Kocabas2020VIBE}
+Muhammed Kocabas, Nikos Athanasiou, and Michael~J. Black.
+\newblock Vibe: Video inference for human body pose and shape estimation.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2020.
+
+\bibitem[Li et~al.(2022)Li, Xu, Yu, Zhang, Li, and Zheng]{Li2022CLIFF}
+Zhihao Li, Jianzhuang Xu, Yanyi Yu, Yifan Zhang, Ce Li, and Liang Zheng.
+\newblock Cliff: Carrying location information in full frames into human pose
+  and shape estimation.
+\newblock In \emph{European Conference on Computer Vision (ECCV)}, 2022.
+
+\bibitem[Loper et~al.(2015)Loper, Mahmood, Romero, Pons-Moll, and
+  Black]{SMPL:2015}
+Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael~J.
+  Black.
+\newblock Smpl: A skinned multi-person linear model.
+\newblock \emph{ACM Trans. Graphics (Proc. SIGGRAPH Asia)}, 34\penalty0
+  (6):\penalty0 248:1--248:16, 2015.
+
+\end{thebibliography}

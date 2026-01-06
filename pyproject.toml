@@ -1,0 +1,75 @@
+# pyproject.toml
+[project]
+name = "closet_canvas"
+version = "0.1.0"
+description = "Fit and Style-Aware Personalized Recommendations for Apparel"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["closet_canvas*"]
+
+[build-system]
+requires = ["setuptools>=69.0"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+catalog = [
+    "opencv-python",
+    "segment-anything==1.0",
+    "transformers==4.57.1",
+    "open-clip-torch==3.2.0",
+    "torch>=2.8.0",
+    "pillow>=12.0.0",
+]
+recommender = [
+    "httpx>=0.28.1",
+    "scikit-learn>=1.7.2",
+    "pandas>=2.3.2",
+    "numpy<2.0.0",
+    "regex>=2025.10.23",
+    "networkx>=3.3",
+    "ftfy>=6.3.1",
+    "safetensors>=0.6.2",
+    "segment-anything>=1.0",
+    "sympy>=1.13.3",
+    "filelock>=3.13.1",
+    "fsspec>=2024.6.1",
+    "mpmath>=1.3.0",
+    "tokenizers>=0.22.1",
+    "ipython>=9.7.0",
+]
+body-capture = [
+    "ultralytics>=8.3.228",
+]
+smpl_generation = [
+    "smplx>=0.1.28",
+    "trimesh>=3.21.12",
+    "pyrender>=0.1.45",
+    "scipy>=1.11.4",
+    "mmpose>=1.0.0",
+    "mediapipe>=0.10.21",
+    "numpy<2.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "boto3-stubs[s3]>=1.40.64",
+    "pytest>=8.4.2",
+    "ruff>=0.14.2",
+]
+
+[tool.uv.workspace]
+members = [
+    "services/capture",
+    "services/ingest",
+]
+
+[tool.uv.extra-build-dependencies]
+chumpy = ["pip"]
+xtcocotools = ["numpy"]

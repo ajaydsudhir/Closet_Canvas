@@ -1,0 +1,36 @@
+FROM pytorch/pytorch:2.9.1-cuda13.0-cudnn9-runtime
+
+COPY --from=ghcr.io/astral-sh/uv:0.9.6 /uv /uvx /bin/
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg dos2unix \
+    && rm -rf /var/lib/apt/lists/*
+
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+COPY services/capture/pyproject.toml services/capture/pyproject.toml
+COPY services/ingest/pyproject.toml services/ingest/pyproject.toml
+COPY services/__init__.py services/__init__.py
+
+COPY src ./src
+COPY services/capture ./services/capture
+COPY services/ingest ./services/ingest
+
+# Install the closet-canvas package with catalog, body-capture, recommender dependencies, then ingest with gating
+RUN uv pip install --system "./[catalog,body-capture,smpl_generation,recommender]" && \
+    uv pip install --system ./services/ingest[gating]
+
+COPY services/ingest/download_models.py /app/services/ingest/download_models.py
+COPY services/ingest/entrypoint.sh /entrypoint.sh
+RUN apt-get update && apt-get install -y --no-install-recommends dos2unix \
+    && dos2unix /entrypoint.sh \
+    && chmod +x /entrypoint.sh \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/services/ingest
+ENV PYTHONPATH=/app
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "-m", "services.ingest.run_gating_worker"]
